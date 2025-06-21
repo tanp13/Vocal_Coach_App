@@ -378,22 +378,37 @@ def load_reference_data():
     features_3sec_path = os.path.join(base_dir, 'data', 'features_3_sec.csv')
     features_30sec_path = os.path.join(base_dir, 'data', 'features_30_sec.csv')
     
-    # Ensure data is present before trying to load it
-    ensure_data_is_downloaded()
-    
+    # This function will now only be called after data is confirmed to be present
     features_3sec = pd.read_csv(features_3sec_path)
     features_30sec = pd.read_csv(features_30sec_path)
     return features_3sec, features_30sec
 
-try:
-    features_3sec, features_30sec = load_reference_data()
-    has_reference_data = True
-except FileNotFoundError:
-    st.error("One or more data files were not found. Please ensure 'features_3_sec.csv' and 'features_30_sec.csv' are in the 'data' directory.")
-    has_reference_data = False
-except Exception as e:
-    st.error(f"An unexpected error occurred while loading data: {e}")
-    has_reference_data = False
+# Initialize variables to hold data; they will be loaded on demand
+features_3sec = None
+features_30sec = None
+has_reference_data = False
+
+# Function to check for data and load if available
+def check_and_load_data():
+    """Checks if data files exist and loads them into memory."""
+    global features_3sec, features_30sec, has_reference_data
+    
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    features_3sec_path = os.path.join(base_dir, 'data', 'features_3_sec.csv')
+    features_30sec_path = os.path.join(base_dir, 'data', 'features_30_sec.csv')
+
+    if os.path.exists(features_3sec_path) and os.path.exists(features_30sec_path):
+        try:
+            features_3sec, features_30sec = load_reference_data()
+            has_reference_data = True
+        except Exception as e:
+            st.error(f"An unexpected error occurred while loading data: {e}")
+            has_reference_data = False
+    else:
+        has_reference_data = False
+
+# Check for data at the start of each page load
+check_and_load_data()
 
 # Initialize session state
 if 'audio_data' not in st.session_state:
@@ -944,6 +959,9 @@ elif page == "Practice":
         # --- Call the download function right after a file is uploaded ---
         ensure_data_is_downloaded()
         
+        # --- Reload data state after potential download ---
+        check_and_load_data()
+
         st.session_state.audio_file = audio_file
         with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as tmp_file:
             tmp_file.write(audio_file.read())
@@ -974,7 +992,13 @@ elif page == "Practice":
         })
         st.success("✅ Audio file uploaded successfully! Proceed to the Analysis tab for detailed performance evaluation.")
     else:
-        st.info("🎵 Please upload an audio file to begin your practice session analysis.")
+        # If no file is uploaded, and data is missing, prompt for download
+        if not has_reference_data:
+            st.warning("Welcome! Please upload an audio file to begin. The necessary data files (1.23 GB) will be downloaded automatically.")
+            ensure_data_is_downloaded()
+        else:
+            st.info("🎵 Please upload an audio file to begin your practice session analysis.")
+
 
 elif page == "Analysis":
     st.header("🔬 Performance Analysis")
@@ -982,7 +1006,12 @@ elif page == "Analysis":
     # --- Call the download function here as well, as a failsafe ---
     ensure_data_is_downloaded()
     
-    if 'audio_file' in st.session_state and st.session_state.audio_file is not None:
+    # --- Reload data state after potential download ---
+    check_and_load_data()
+    
+    if not has_reference_data:
+        st.error("Data files are still not found. Please go to the 'Practice' tab and upload a file to trigger the download.")
+    elif 'audio_file' in st.session_state and st.session_state.audio_file is not None:
         audio_file = st.session_state.audio_file
         audio_file.seek(0)
         audio_data, sample_rate = librosa.load(audio_file, sr=None)
