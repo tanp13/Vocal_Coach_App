@@ -15,18 +15,26 @@ import json
 import gdown
 import zipfile
 
+import os
+
 file_id = '1Xb9q79ZbSVSKErvazg7BQEKXvuiYTzJ-'
 output = 'data.zip'
 
 if not (os.path.exists('data/features_3_sec.csv') and os.path.exists('data/features_30_sec.csv')):
+    import gdown
+    import zipfile
     url = f'https://drive.google.com/uc?id={file_id}'
+    print("Attempting to download data.zip from Google Drive...")
     gdown.download(url, output, quiet=False)
     if os.path.exists(output):
         with zipfile.ZipFile(output, 'r') as zip_ref:
             zip_ref.extractall('data')
         os.remove(output)
     else:
-        raise FileNotFoundError("Failed to download data.zip from Google Drive. Please check the file ID and permissions.")
+        raise FileNotFoundError(
+            "Failed to download data.zip from Google Drive. "
+            "Please check the file ID, permissions, and internet connection."
+        )
     
 try:
     from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
