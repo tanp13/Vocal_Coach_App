@@ -1,6 +1,6 @@
 # Coach Harmony: Your AI-Powered Vocal Coach
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://your-deployment-link-here.streamlit.app/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://coach-harmony.streamlit.app/)
 
 Coach Harmony is a sophisticated web application built with Streamlit that provides aspiring singers with personalized vocal training and professional-grade performance analysis. Leveraging advanced AI and signal processing techniques, this tool helps users unlock their full singing potential by offering actionable feedback on pitch, tempo, timbre, and more.
 
