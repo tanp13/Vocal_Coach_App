@@ -15,6 +15,8 @@ import json
 import gdown
 import zipfile
 import shutil
+import time
+import requests
 
 # --- Start of New Data Download Logic ---
 
@@ -23,7 +25,7 @@ def ensure_data_is_downloaded():
     """
     Checks if data files exist and downloads/extracts them if not.
     This function is designed to be called on-demand to avoid blocking
-    the app's initial startup.
+    the app's initial startup and includes retry logic for network instability.
     """
     # New Google Drive file ID
     file_id = '1MGLNZSFvI8W7lIrqM-GBU78OzU4Kvfxk'
@@ -35,33 +37,59 @@ def ensure_data_is_downloaded():
     features_30sec_path = os.path.join(data_dir, 'features_30_sec.csv')
 
     if not (os.path.exists(features_3sec_path) and os.path.exists(features_30sec_path)):
-        # Display a message to the user
-        with st.spinner("Downloading essential data (1.23 GB). This may take a few minutes..."):
-            url = f'https://drive.google.com/uc?id={file_id}'
-            print("Attempting to download data.zip from Google Drive...")
-            gdown.download(url, output_zip, quiet=False)
-            
-            if os.path.exists(output_zip):
-                print("Download complete. Extracting files...")
-                # Unzip the file
-                with zipfile.ZipFile(output_zip, 'r') as zip_ref:
-                    # Extract to current directory
-                    zip_ref.extractall(os.getcwd())
-                os.remove(output_zip)
+        url = f'https://drive.google.com/uc?id={file_id}'
+        download_successful = False
+        max_retries = 3
 
-                # Check for nested 'data/data' and move files if necessary
-                source_dir = os.path.join(data_dir, 'data')
-                if os.path.exists(source_dir) and os.path.isdir(source_dir):
-                    print("Nested 'data/data' directory found. Moving files up...")
-                    for file_name in os.listdir(source_dir):
-                        shutil.move(os.path.join(source_dir, file_name), data_dir)
-                    os.rmdir(source_dir)
-                print("Data preparation complete.")
-                # Force a rerun to reload the page with the data now available
-                st.rerun()
-            else:
-                st.error("Fatal Error: Failed to download required data. The application cannot proceed.")
+        for attempt in range(max_retries):
+            try:
+                # Use a spinner to show progress
+                with st.spinner(f"Downloading essential data (1.23 GB). This can take a few minutes. Attempt {attempt + 1}/{max_retries}..."):
+                    print(f"Attempting to download data.zip (Attempt {attempt + 1}/{max_retries})...")
+                    gdown.download(url, output_zip, quiet=False)
+                    
+                    if os.path.exists(output_zip):
+                        # Verify file size as a sanity check for incomplete downloads
+                        if os.path.getsize(output_zip) > 1_000_000_000: # > 1 GB
+                            print("Download seems complete. Extracting files...")
+                            with zipfile.ZipFile(output_zip, 'r') as zip_ref:
+                                zip_ref.extractall(os.getcwd())
+                            os.remove(output_zip)
+
+                            # Handle nested 'data/data' directory
+                            source_dir = os.path.join(data_dir, 'data')
+                            if os.path.exists(source_dir) and os.path.isdir(source_dir):
+                                print("Nested 'data/data' directory found. Moving files up...")
+                                for file_name in os.listdir(source_dir):
+                                    shutil.move(os.path.join(source_dir, file_name), data_dir)
+                                os.rmdir(source_dir)
+                            
+                            print("Data preparation complete.")
+                            download_successful = True
+                            break  # Exit retry loop on success
+                        else:
+                            print(f"Downloaded file is incomplete ({os.path.getsize(output_zip)} bytes). Removing and retrying...")
+                            os.remove(output_zip)
+                            # Let the loop continue to the next attempt
+                    
+            except requests.exceptions.ChunkedEncodingError as e:
+                print(f"A network error occurred during download (Attempt {attempt + 1}): {e}")
+                if attempt < max_retries - 1:
+                    print("Retrying in 5 seconds...")
+                    time.sleep(5)
+                else:
+                    st.error("Fatal Error: Failed to download required data after multiple attempts due to a network connection issue. Please check the deployment logs and try again later.")
+                    st.stop()
+            except Exception as e:
+                st.error(f"An unexpected error occurred during the download process: {e}")
                 st.stop()
+
+        if download_successful:
+            st.rerun()
+        else:
+            # This will be reached if all retries fail due to incomplete file size
+            st.error("Fatal Error: Failed to download the complete data file after multiple attempts. The file may be corrupted or there is a persistent network issue.")
+            st.stop()
 
 # --- End of New Data Download Logic ---
         
