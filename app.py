@@ -14,20 +14,35 @@ import queue
 import json
 import gdown
 import zipfile
+import shutil
 
-file_id = '1Xb9q79ZbSVSKErvazg7BQEKXvuiYTzJ-'
+# New Google Drive file ID
+file_id = '1MGLNZSFvI8W7lIrqM-GBU78OzU4Kvfxk'
 output = os.path.join(os.getcwd(), 'data.zip')
+data_dir = os.path.join(os.getcwd(), 'data')
 
-if not (os.path.exists('data/features_3_sec.csv') and os.path.exists('data/features_30_sec.csv')):
-    import gdown
-    import zipfile
+# Check if the CSV files exist before downloading
+if not (os.path.exists(os.path.join(data_dir, 'features_3_sec.csv')) and os.path.exists(os.path.join(data_dir, 'features_30_sec.csv'))):
     url = f'https://drive.google.com/uc?id={file_id}'
     print("Attempting to download data.zip from Google Drive...")
     gdown.download(url, output, quiet=False)
+    
     if os.path.exists(output):
+        # Unzip the file
         with zipfile.ZipFile(output, 'r') as zip_ref:
-            zip_ref.extractall('data')
+            # Extract to current directory to avoid creating data/data
+            zip_ref.extractall(os.getcwd())
         os.remove(output)
+
+        # Check if a nested 'data/data' directory was created
+        source_dir = os.path.join(data_dir, 'data')
+        if os.path.exists(source_dir):
+            print("Nested 'data/data' directory found. Moving files up...")
+            # Move all files from data/data to data/
+            for file_name in os.listdir(source_dir):
+                shutil.move(os.path.join(source_dir, file_name), data_dir)
+            # Remove the now-empty nested data directory
+            os.rmdir(source_dir)
     else:
         raise FileNotFoundError(
             f"Failed to download data.zip from Google Drive. Looked for {output}. "
