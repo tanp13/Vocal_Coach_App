@@ -15,10 +15,8 @@ import json
 import gdown
 import zipfile
 
-import os
-
 file_id = '1Xb9q79ZbSVSKErvazg7BQEKXvuiYTzJ-'
-output = 'data.zip'
+output = os.path.join(os.getcwd(), 'data.zip')
 
 if not (os.path.exists('data/features_3_sec.csv') and os.path.exists('data/features_30_sec.csv')):
     import gdown
@@ -32,7 +30,7 @@ if not (os.path.exists('data/features_3_sec.csv') and os.path.exists('data/featu
         os.remove(output)
     else:
         raise FileNotFoundError(
-            "Failed to download data.zip from Google Drive. "
+            f"Failed to download data.zip from Google Drive. Looked for {output}. "
             "Please check the file ID, permissions, and internet connection."
         )
     
