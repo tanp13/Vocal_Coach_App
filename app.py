@@ -16,39 +16,55 @@ import gdown
 import zipfile
 import shutil
 
-# New Google Drive file ID
-file_id = '1MGLNZSFvI8W7lIrqM-GBU78OzU4Kvfxk'
-output = os.path.join(os.getcwd(), 'data.zip')
-data_dir = os.path.join(os.getcwd(), 'data')
+# --- Start of New Data Download Logic ---
 
-# Check if the CSV files exist before downloading
-if not (os.path.exists(os.path.join(data_dir, 'features_3_sec.csv')) and os.path.exists(os.path.join(data_dir, 'features_30_sec.csv'))):
-    url = f'https://drive.google.com/uc?id={file_id}'
-    print("Attempting to download data.zip from Google Drive...")
-    gdown.download(url, output, quiet=False)
+# Function to handle data download and extraction
+def ensure_data_is_downloaded():
+    """
+    Checks if data files exist and downloads/extracts them if not.
+    This function is designed to be called on-demand to avoid blocking
+    the app's initial startup.
+    """
+    # New Google Drive file ID
+    file_id = '1MGLNZSFvI8W7lIrqM-GBU78OzU4Kvfxk'
+    output_zip = os.path.join(os.getcwd(), 'data.zip')
+    data_dir = os.path.join(os.getcwd(), 'data')
     
-    if os.path.exists(output):
-        # Unzip the file
-        with zipfile.ZipFile(output, 'r') as zip_ref:
-            # Extract to current directory to avoid creating data/data
-            zip_ref.extractall(os.getcwd())
-        os.remove(output)
+    # Check if the CSV files exist. If not, trigger the download.
+    features_3sec_path = os.path.join(data_dir, 'features_3_sec.csv')
+    features_30sec_path = os.path.join(data_dir, 'features_30_sec.csv')
 
-        # Check if a nested 'data/data' directory was created
-        source_dir = os.path.join(data_dir, 'data')
-        if os.path.exists(source_dir):
-            print("Nested 'data/data' directory found. Moving files up...")
-            # Move all files from data/data to data/
-            for file_name in os.listdir(source_dir):
-                shutil.move(os.path.join(source_dir, file_name), data_dir)
-            # Remove the now-empty nested data directory
-            os.rmdir(source_dir)
-    else:
-        raise FileNotFoundError(
-            f"Failed to download data.zip from Google Drive. Looked for {output}. "
-            "Please check the file ID, permissions, and internet connection."
-        )
-    
+    if not (os.path.exists(features_3sec_path) and os.path.exists(features_30sec_path)):
+        # Display a message to the user
+        with st.spinner("Downloading essential data (1.23 GB). This may take a few minutes..."):
+            url = f'https://drive.google.com/uc?id={file_id}'
+            print("Attempting to download data.zip from Google Drive...")
+            gdown.download(url, output_zip, quiet=False)
+            
+            if os.path.exists(output_zip):
+                print("Download complete. Extracting files...")
+                # Unzip the file
+                with zipfile.ZipFile(output_zip, 'r') as zip_ref:
+                    # Extract to current directory
+                    zip_ref.extractall(os.getcwd())
+                os.remove(output_zip)
+
+                # Check for nested 'data/data' and move files if necessary
+                source_dir = os.path.join(data_dir, 'data')
+                if os.path.exists(source_dir) and os.path.isdir(source_dir):
+                    print("Nested 'data/data' directory found. Moving files up...")
+                    for file_name in os.listdir(source_dir):
+                        shutil.move(os.path.join(source_dir, file_name), data_dir)
+                    os.rmdir(source_dir)
+                print("Data preparation complete.")
+                # Force a rerun to reload the page with the data now available
+                st.rerun()
+            else:
+                st.error("Fatal Error: Failed to download required data. The application cannot proceed.")
+                st.stop()
+
+# --- End of New Data Download Logic ---
+        
 try:
     from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
     has_webrtc = True
@@ -333,6 +349,9 @@ def load_reference_data():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     features_3sec_path = os.path.join(base_dir, 'data', 'features_3_sec.csv')
     features_30sec_path = os.path.join(base_dir, 'data', 'features_30_sec.csv')
+    
+    # Ensure data is present before trying to load it
+    ensure_data_is_downloaded()
     
     features_3sec = pd.read_csv(features_3sec_path)
     features_30sec = pd.read_csv(features_30sec_path)
@@ -875,54 +894,6 @@ if page == "Dashboard":
 
 elif page == "Practice":
     st.header("🎤 Practice Session")
-    # --- Live Recording Section ---
-    # st.subheader("🎙️ Record Your Voice (Live)")
-    # --- Live recording section commented out for troubleshooting ---
-    # if has_webrtc:
-    #     import av
-    #     import io
-    #     import queue
-    #     class AudioProcessor(AudioProcessorBase):
-    #         def __init__(self):
-    #             self.audio_queue = queue.Queue()
-    #         def recv_audio(self, frame):
-    #             self.audio_queue.put(frame)
-    #             return frame
-    #     if 'audio_frames' not in st.session_state:
-    #         st.session_state.audio_frames = []
-    #     webrtc_ctx = webrtc_streamer(
-    #         key="audio",
-    #         audio_receiver_size=1024,
-    #         audio_processor_factory=AudioProcessor,
-    #         media_stream_constraints={"audio": True, "video": False},
-    #     )
-    #     if webrtc_ctx and webrtc_ctx.state.playing and webrtc_ctx.audio_receiver:
-    #         st.info("Recording... Click Stop to finish and process your audio.")
-    #     if webrtc_ctx and webrtc_ctx.state == "STATE_STOPPED" and webrtc_ctx.audio_processor:
-    #         audio_frames = []
-    #         while not webrtc_ctx.audio_processor.audio_queue.empty():
-    #             frame = webrtc_ctx.audio_processor.audio_queue.get()
-    #             audio_frames.append(frame)
-    #         if audio_frames:
-    #             audio_np = np.concatenate([frame.to_ndarray() for frame in audio_frames])
-    #             buf = io.BytesIO()
-    #             sf.write(buf, audio_np, 48000, format='WAV')
-    #             buf.seek(0)
-    #             buf.name = 'recorded.wav'  # Make it look like an uploaded file
-    #             st.session_state.audio_file = buf
-    #             audio_data, sample_rate = librosa.load(buf, sr=None)
-    #             st.session_state.audio_data = audio_data
-    #             st.session_state.sample_rate = sample_rate
-    #             st.markdown("""
-    #                 <div style='background: linear-gradient(145deg, #a29bfe, #6c5ce7); padding: 1.5rem; border-radius: 20px; margin: 1rem 0; border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 8px 32px rgba(0,0,0,0.3);'>
-    #                     <h4 style='color: #ffffff; margin-bottom: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);'>Your Recording</h4>
-    #             """, unsafe_allow_html=True)
-    #             st.audio(buf, format="audio/wav")
-    #             st.markdown("</div>", unsafe_allow_html=True)
-    #             st.success("✅ Live audio recorded! Proceed to the Analysis tab for detailed performance evaluation.")
-    # else:
-    #     st.info("To enable live recording, please install streamlit-webrtc: pip install streamlit-webrtc")
-    # --- End live recording section ---
     
     # Recording guidelines with enhanced styling
     st.markdown("""
@@ -942,6 +913,9 @@ elif page == "Practice":
     audio_file = st.file_uploader("Select your audio file (WAV or MP3 format)", type=['wav', 'mp3'])
     
     if audio_file is not None:
+        # --- Call the download function right after a file is uploaded ---
+        ensure_data_is_downloaded()
+        
         st.session_state.audio_file = audio_file
         with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as tmp_file:
             tmp_file.write(audio_file.read())
@@ -976,6 +950,10 @@ elif page == "Practice":
 
 elif page == "Analysis":
     st.header("🔬 Performance Analysis")
+
+    # --- Call the download function here as well, as a failsafe ---
+    ensure_data_is_downloaded()
+    
     if 'audio_file' in st.session_state and st.session_state.audio_file is not None:
         audio_file = st.session_state.audio_file
         audio_file.seek(0)
