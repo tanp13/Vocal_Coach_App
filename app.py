@@ -12,7 +12,19 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics.pairwise import cosine_similarity
 import queue
 import json
+import os
 
+if not (os.path.exists('data/features_3_sec.csv') and os.path.exists('data/features_30_sec.csv')):
+    import gdown
+    import zipfile
+    # Download and extract if not present
+    file_id = '1Xb9q79ZbSVSKErvazg7BQEKXvuiYTzJ-'
+    output = 'data.zip'
+    gdown.download(f'https://drive.google.com/uc?id={file_id}', output, quiet=False)
+    with zipfile.ZipFile(output, 'r') as zip_ref:
+        zip_ref.extractall('data')
+    os.remove(output)
+    
 try:
     from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
     has_webrtc = True
