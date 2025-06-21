@@ -59,5 +59,19 @@ The table below outlines the essential files and directories required for the ap
 | `data/`            | Contains the dataset files (`.csv`) and audio samples used for genre comparison and analysis.              |
 | `models/`          | Stores the pre-trained machine learning models and scalers used for predictions and feature transformation.|
 | `README.md`        | The file you are currently reading, providing an overview and instructions for the project.              |
+| `download_data.py` | Script to automatically download and extract the data folder from Google Drive.                          |
+
+## 📥 Downloading the Data
+
+The full dataset is too large to be included in this repository.
+
+To download and extract the data, run:
+
+```bash
+pip install gdown
+python download_data.py
+```
+
+This will download and extract the data into the `data/` folder automatically from [Google Drive](https://drive.google.com/file/d/1Xb9q79ZbSVSKErvazg7BQEKXvuiYTzJ-/view?usp=drive_link).
 
 ---
