@@ -61,4 +61,3 @@ The table below outlines the essential files and directories required for the ap
 | `README.md`        | The file you are currently reading, providing an overview and instructions for the project.              |
 
 ---
-*Developed with the assistance of an AI pair programmer.* 
