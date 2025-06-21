@@ -12,18 +12,21 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics.pairwise import cosine_similarity
 import queue
 import json
-import os
+import gdown
+import zipfile
+
+file_id = '1Xb9q79ZbSVSKErvazg7BQEKXvuiYTzJ-'
+output = 'data.zip'
 
 if not (os.path.exists('data/features_3_sec.csv') and os.path.exists('data/features_30_sec.csv')):
-    import gdown
-    import zipfile
-    # Download and extract if not present
-    file_id = '1Xb9q79ZbSVSKErvazg7BQEKXvuiYTzJ-'
-    output = 'data.zip'
-    gdown.download(f'https://drive.google.com/uc?id={file_id}', output, quiet=False)
-    with zipfile.ZipFile(output, 'r') as zip_ref:
-        zip_ref.extractall('data')
-    os.remove(output)
+    url = f'https://drive.google.com/uc?id={file_id}'
+    gdown.download(url, output, quiet=False)
+    if os.path.exists(output):
+        with zipfile.ZipFile(output, 'r') as zip_ref:
+            zip_ref.extractall('data')
+        os.remove(output)
+    else:
+        raise FileNotFoundError("Failed to download data.zip from Google Drive. Please check the file ID and permissions.")
     
 try:
     from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
