@@ -992,10 +992,9 @@ elif page == "Practice":
         })
         st.success("✅ Audio file uploaded successfully! Proceed to the Analysis tab for detailed performance evaluation.")
     else:
-        # If no file is uploaded, and data is missing, prompt for download
+        # If no file is uploaded, just show a welcome message without triggering download
         if not has_reference_data:
-            st.warning("Welcome! Please upload an audio file to begin. The necessary data files (1.23 GB) will be downloaded automatically.")
-            ensure_data_is_downloaded()
+            st.warning("Welcome! Please upload an audio file to begin. The necessary data files (1.23 GB) will be downloaded automatically when you upload your first file.")
         else:
             st.info("🎵 Please upload an audio file to begin your practice session analysis.")
 
@@ -1003,14 +1002,11 @@ elif page == "Practice":
 elif page == "Analysis":
     st.header("🔬 Performance Analysis")
 
-    # --- Call the download function here as well, as a failsafe ---
-    ensure_data_is_downloaded()
-    
-    # --- Reload data state after potential download ---
+    # Only check and load data if we have reference data, don't trigger download here
     check_and_load_data()
     
     if not has_reference_data:
-        st.error("Data files are still not found. Please go to the 'Practice' tab and upload a file to trigger the download.")
+        st.warning("📁 Please go to the 'Practice' tab and upload an audio file first. The necessary data files will be downloaded automatically when you upload your first file.")
     elif 'audio_file' in st.session_state and st.session_state.audio_file is not None:
         audio_file = st.session_state.audio_file
         audio_file.seek(0)
