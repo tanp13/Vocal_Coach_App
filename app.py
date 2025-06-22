@@ -106,14 +106,20 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS for better visibility
+# Custom CSS for better visibility and mobile responsiveness
 st.markdown("""
     <style>
-    /* Main container with gradient background */
+    /* Main container with gradient background - fixed for mobile */
     .main {
-        padding: 2rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         min-height: 100vh;
+        background-attachment: fixed !important;
+    }
+    
+    /* Force background on all elements for mobile */
+    .stApp {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     }
     
     /* Headers with modern styling */
@@ -127,7 +133,7 @@ st.markdown("""
     /* Paragraphs and text */
     p, .stMarkdown {
         color: #ffffff !important;
-        font-size: 1.1rem !important;
+        font-size: 1rem !important;
         line-height: 1.6 !important;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     }
@@ -159,7 +165,7 @@ st.markdown("""
         padding: 0.8rem 1.5rem;
         border: none;
         font-weight: bold;
-        font-size: 1.1rem;
+        font-size: 1rem;
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         transition: all 0.3s ease;
     }
@@ -172,7 +178,7 @@ st.markdown("""
     
     /* Enhanced alerts and messages */
     .stAlert {
-        font-size: 1.1rem !important;
+        font-size: 1rem !important;
         color: #ffffff !important;
         background: linear-gradient(135deg, #a29bfe, #6c5ce7) !important;
         border: 2px solid rgba(255,255,255,0.3) !important;
@@ -183,7 +189,7 @@ st.markdown("""
     /* Metrics with enhanced styling */
     .stMetric {
         color: #ffffff !important;
-        font-size: 1.2rem !important;
+        font-size: 1.1rem !important;
         background: linear-gradient(145deg, #a29bfe, #6c5ce7);
         padding: 1rem;
         border-radius: 15px;
@@ -228,16 +234,20 @@ st.markdown("""
         text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
     }
     
-    /* Enhanced feature cards */
+    /* Enhanced feature cards - mobile responsive */
     .feature-card {
         background: linear-gradient(145deg, #a29bfe, #6c5ce7);
-        padding: 1.5rem;
+        padding: 1.2rem;
         border-radius: 20px;
         margin-bottom: 1rem;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         border: 2px solid rgba(255,255,255,0.2);
         backdrop-filter: blur(10px);
         transition: transform 0.3s ease;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     
     .feature-card:hover {
@@ -246,7 +256,7 @@ st.markdown("""
     
     .feature-title {
         color: #ffffff !important;
-        font-size: 1.3rem !important;
+        font-size: 1.1rem !important;
         font-weight: bold !important;
         margin-bottom: 0.5rem !important;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
@@ -254,9 +264,10 @@ st.markdown("""
     
     .feature-text {
         color: #ffffff !important;
-        font-size: 1.1rem !important;
-        line-height: 1.6 !important;
+        font-size: 0.9rem !important;
+        line-height: 1.5 !important;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        flex-grow: 1;
     }
     
     /* Dashboard header with special styling */
@@ -265,7 +276,7 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        font-size: 2.5rem;
+        font-size: 2rem;
         font-weight: bold;
         margin-bottom: 2rem;
         text-align: center;
@@ -276,96 +287,104 @@ st.markdown("""
     .stFileUploader {
         background: linear-gradient(145deg, #a29bfe, #6c5ce7);
         border-radius: 20px;
-        padding: 2rem;
-        border: 3px dashed rgba(255,255,255,0.5);
-        text-align: center;
+        padding: 1.5rem;
+        border: 2px solid rgba(255,255,255,0.3);
     }
     
-    /* Audio player styling */
+    /* Audio player styling - larger for mobile */
     .stAudio {
+        width: 100% !important;
+        height: 80px !important;
+        margin: 1rem 0 !important;
+    }
+    
+    /* Audio player container - enhanced for mobile */
+    .audio-container {
         background: linear-gradient(145deg, #a29bfe, #6c5ce7);
-        border-radius: 15px;
-        padding: 1rem;
+        padding: 1.5rem;
+        border-radius: 20px;
+        margin: 1rem 0;
         border: 2px solid rgba(255,255,255,0.3);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        min-height: 120px;
     }
     
-    /* Progress bars and charts */
-    .stProgress > div > div {
-        background: linear-gradient(90deg, #a29bfe, #6c5ce7);
-        border-radius: 10px;
+    /* Mobile-specific responsive design */
+    @media (max-width: 768px) {
+        .main {
+            padding: 0.5rem;
+        }
+        
+        .feature-card {
+            padding: 1rem;
+            min-height: 160px;
+            margin-bottom: 0.8rem;
+        }
+        
+        .feature-title {
+            font-size: 1rem !important;
+        }
+        
+        .feature-text {
+            font-size: 0.85rem !important;
+        }
+        
+        .stAudio {
+            height: 100px !important;
+        }
+        
+        .audio-container {
+            padding: 1.2rem;
+            min-height: 140px;
+        }
+        
+        h1, h2, h3, h4 {
+            font-size: 1.5rem !important;
+        }
+        
+        .dashboard-header {
+            font-size: 1.8rem;
+        }
     }
     
-    /* Custom success, warning, error, info styling */
-    .stSuccess {
-        background: linear-gradient(135deg, #a29bfe, #6c5ce7) !important;
-        border-radius: 15px !important;
-        border: 2px solid rgba(255,255,255,0.3) !important;
+    /* Extra small mobile devices */
+    @media (max-width: 480px) {
+        .feature-card {
+            padding: 0.8rem;
+            min-height: 140px;
+        }
+        
+        .feature-title {
+            font-size: 0.9rem !important;
+        }
+        
+        .feature-text {
+            font-size: 0.8rem !important;
+        }
+        
+        .stAudio {
+            height: 90px !important;
+        }
+        
+        .audio-container {
+            padding: 1rem;
+            min-height: 120px;
+        }
     }
     
-    .stWarning {
-        background: linear-gradient(135deg, #fdcb6e, #e17055) !important;
-        border-radius: 15px !important;
-        border: 2px solid rgba(255,255,255,0.3) !important;
+    /* Ensure background gradient shows on all mobile browsers */
+    html, body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        background-attachment: fixed !important;
     }
     
-    .stError {
-        background: linear-gradient(135deg, #e17055, #d63031) !important;
-        border-radius: 15px !important;
-        border: 2px solid rgba(255,255,255,0.3) !important;
+    /* Fix for Streamlit's default styling conflicts */
+    .stApp > header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     }
     
-    .stInfo {
-        background: linear-gradient(135deg, #a29bfe, #6c5ce7) !important;
-        border-radius: 15px !important;
-        border: 2px solid rgba(255,255,255,0.3) !important;
-    }
-    
-    /* Fix for text visibility in summary sections */
-    .stMarkdown p {
-        color: #ffffff !important;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
-    }
-    
-    /* Segment analysis cards */
-    .segment-card {
-        background: linear-gradient(145deg, #a29bfe, #6c5ce7);
-        padding: 1rem;
-        border-radius: 15px;
-        margin-bottom: 0.5rem;
-        border: 2px solid rgba(255,255,255,0.3);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    
-    .segment-card.success {
-        background: linear-gradient(145deg, #a29bfe, #6c5ce7);
-    }
-    
-    .segment-card.warning {
-        background: linear-gradient(145deg, #fdcb6e, #e17055);
-    }
-    
-    .segment-card.info {
-        background: linear-gradient(145deg, #74b9ff, #0984e3);
-    }
-    
-    .segment-time {
-        color: #ffffff;
-        font-weight: bold;
-        font-size: 1.1rem;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-    }
-    
-    .segment-issue {
-        color: #ffffff;
-        font-weight: bold;
-        font-size: 1rem;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-    }
-    
-    .segment-description {
-        color: #ffffff;
-        font-size: 0.9rem;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    .stApp > main {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -881,7 +900,7 @@ if page == "Dashboard":
     
     st.markdown('<h2 style="color: #ffffff; margin: 2rem 0 1rem 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); text-align: center;">Advanced Vocal Training Features</h2>', unsafe_allow_html=True)
     
-    # Arrange feature cards in a grid (2 columns per row)
+    # Arrange feature cards in a responsive grid
     feature_cards = [
         {
             "title": "🎯 Advanced Pitch Analysis",
@@ -909,16 +928,15 @@ if page == "Dashboard":
         },
     ]
     
+    # Use responsive columns - 2 on desktop, 1 on mobile
     for i in range(0, len(feature_cards), 2):
         cols = st.columns(2)
         for j, card in enumerate(feature_cards[i:i+2]):
             with cols[j]:
                 st.markdown(f"""
-                    <div class="feature-card" style="height: 200px; min-height: 200px; width: 100%; display: flex; flex-direction: column; justify-content: space-between;">
-                        <div>
-                            <div class="feature-title">{card['title']}</div>
-                            <div class="feature-text">{card['text']}</div>
-                        </div>
+                    <div class="feature-card">
+                        <div class="feature-title">{card['title']}</div>
+                        <div class="feature-text">{card['text']}</div>
                     </div>
                 """, unsafe_allow_html=True)
 
